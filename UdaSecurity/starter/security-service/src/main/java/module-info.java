@@ -1,11 +1,12 @@
 module com.udacity.catpoint.security {
-    requires com.udacity.catpoint.image;
-	requires miglayout;
-    requires java.desktop;
-    requires com.google.common;
-    requires org.slf4j;
-    requires com.google.gson;
-    requires java.prefs; 	
-	opens com.udacity.catpoint.security.data to com.google.gson;
+    requires com.udacity.catpoint.image; // Dependency on the image service
+    requires miglayout; // Dependency for MigLayout library
+    requires java.desktop; // Required for Swing and AWT
+    requires java.logging; // Added to resolve logging package access
+    requires com.google.common; // Dependency for Google Guava
+    requires org.slf4j; // Dependency for SLF4J logging
+    requires com.google.gson; // Dependency for Gson
+    requires java.prefs; // Dependency for Preferences API
 
+    opens com.udacity.catpoint.security.data to com.google.gson; // Open package for Gson deserialization
 }

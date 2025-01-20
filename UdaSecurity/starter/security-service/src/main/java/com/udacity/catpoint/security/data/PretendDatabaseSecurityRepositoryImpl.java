@@ -8,14 +8,13 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
-/**
- * Fake repository implementation for demo purposes. Stores state information in local
- * memory and writes it to user preferences between app loads. This implementation is
- * intentionally a little hard to use in unit tests, so watch out!
- */
 public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository {
+
+    private static final Logger logger = Logger.getLogger(PretendDatabaseSecurityRepositoryImpl.class.getName());
 
     private final Set<Sensor> sensors;
     private AlarmStatus alarmStatus;
@@ -27,14 +26,14 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
     private static final String ARMING_STATUS = "ARMING_STATUS";
 
     private static final Preferences prefs = Preferences.userNodeForPackage(PretendDatabaseSecurityRepositoryImpl.class);
-    private static final Gson gson = new Gson(); // Used to serialize objects into JSON
+    private static final Gson gson = new Gson();
 
     public PretendDatabaseSecurityRepositoryImpl() {
-        // Load system state from prefs, or else default
+        // Load system state from preferences or initialize defaults
         alarmStatus = AlarmStatus.valueOf(prefs.get(ALARM_STATUS, AlarmStatus.NO_ALARM.toString()));
         armingStatus = ArmingStatus.valueOf(prefs.get(ARMING_STATUS, ArmingStatus.DISARMED.toString()));
 
-        // Deserialize sensors from storage or initialize a new set
+        // Load sensors from preferences or initialize as an empty set
         String sensorString = prefs.get(SENSORS, null);
         if (sensorString == null) {
             sensors = new TreeSet<>();
@@ -43,13 +42,22 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
             Set<Sensor> deserializedSensors;
             try {
                 deserializedSensors = gson.fromJson(sensorString, type);
-                // Ensure all sensors have valid sensorIds after deserialization
                 for (Sensor sensor : deserializedSensors) {
                     if (sensor.getSensorId() == null) {
-                        sensor.setSensorId(java.util.UUID.randomUUID());
+                        logger.warning("Detected Sensor with null ID. Generating new UUID.");
+                        sensor.setSensorId(UUID.randomUUID());
+                    }
+                    if (sensor.getSensorType() == null) {
+                        logger.warning("Detected Sensor with null SensorType. Setting default SensorType.");
+                        sensor.setSensorType(SensorType.DOOR); // Default to DOOR type
+                    }
+                    if (sensor.getActive() == null) {
+                        logger.warning("Detected Sensor with null active state. Setting to inactive.");
+                        sensor.setActive(false); // Default to inactive
                     }
                 }
             } catch (JsonParseException e) {
+                logger.severe("Failed to parse sensors from preferences. Initializing empty set.");
                 deserializedSensors = new TreeSet<>();
             }
             sensors = deserializedSensors;
@@ -89,7 +97,6 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
 
     @Override
     public Set<Sensor> getSensors() {
-        // Return an unmodifiable view to prevent external modification
         return Collections.unmodifiableSet(sensors);
     }
 
