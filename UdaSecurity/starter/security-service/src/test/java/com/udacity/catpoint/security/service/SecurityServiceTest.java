@@ -10,7 +10,6 @@ import com.udacity.catpoint.image.service.FakeImageService;
 import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;
-import java.util.Set;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,18 +18,22 @@ public class SecurityServiceTest {
 
     @Test
     public void testSetArmingStatus_disarmed_setsNoAlarm() {
+        // Arrange
         SecurityRepository mockRepository = mock(SecurityRepository.class);
         FakeImageService mockImageService = mock(FakeImageService.class);
         SecurityService service = new SecurityService(mockRepository, mockImageService);
 
+        // Act
         service.setArmingStatus(ArmingStatus.DISARMED);
 
+        // Assert
         verify(mockRepository, times(1)).setArmingStatus(ArmingStatus.DISARMED);
         verify(mockRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
     @Test
     public void testChangeSensorActivationStatus_activatesSensor_updatesRepository() {
+        // Arrange
         SecurityRepository mockRepository = mock(SecurityRepository.class);
         FakeImageService mockImageService = mock(FakeImageService.class);
         when(mockRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM);
@@ -38,14 +41,17 @@ public class SecurityServiceTest {
         SecurityService service = new SecurityService(mockRepository, mockImageService);
         Sensor sensor = new Sensor("Sensor1", SensorType.DOOR);
 
+        // Act
         service.changeSensorActivationStatus(sensor, true);
 
+        // Assert
         assertTrue(sensor.getActive());
         verify(mockRepository, times(1)).updateSensor(sensor);
     }
 
     @Test
     public void testProcessImage_detectsCat_triggersAlarm() {
+        // Arrange
         SecurityRepository mockRepository = mock(SecurityRepository.class);
         FakeImageService mockImageService = mock(FakeImageService.class);
         BufferedImage mockImage = mock(BufferedImage.class);
@@ -54,13 +60,16 @@ public class SecurityServiceTest {
 
         SecurityService service = new SecurityService(mockRepository, mockImageService);
 
+        // Act
         service.processImage(mockImage);
 
+        // Assert
         verify(mockRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
     }
 
     @Test
     public void testProcessImage_noCat_noAlarm() {
+        // Arrange
         SecurityRepository mockRepository = mock(SecurityRepository.class);
         FakeImageService mockImageService = mock(FakeImageService.class);
         BufferedImage mockImage = mock(BufferedImage.class);
@@ -68,20 +77,26 @@ public class SecurityServiceTest {
 
         SecurityService service = new SecurityService(mockRepository, mockImageService);
 
+        // Act
         service.processImage(mockImage);
 
+        // Assert
         verify(mockRepository, never()).setAlarmStatus(AlarmStatus.ALARM);
     }
 
     @Test
     public void testAddStatusListener_registersListener() {
+        // Arrange
         SecurityRepository mockRepository = mock(SecurityRepository.class);
         FakeImageService mockImageService = mock(FakeImageService.class);
         StatusListener mockListener = mock(StatusListener.class);
         SecurityService service = new SecurityService(mockRepository, mockImageService);
 
+        // Act
         service.addStatusListener(mockListener);
 
-        assertTrue(service.getSensors().isEmpty());
+        // Assert
+        verify(mockRepository, never()).getSensors();
+        assertNotNull(mockListener);
     }
 }

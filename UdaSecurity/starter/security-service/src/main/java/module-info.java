@@ -6,4 +6,6 @@ module com.udacity.catpoint.security {
     requires org.slf4j;
     requires com.google.gson;
     requires java.prefs; 	
+	opens com.udacity.catpoint.security.data to com.google.gson;
+
 }

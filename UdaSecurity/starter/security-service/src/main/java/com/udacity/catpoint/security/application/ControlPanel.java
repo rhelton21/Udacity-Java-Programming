@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * JPanel containing the buttons to manipulate arming status of the system.
@@ -22,7 +23,7 @@ public class ControlPanel extends JPanel {
     public ControlPanel(SecurityService securityService) {
         super();
         setLayout(new MigLayout());
-        this.securityService = securityService;
+		this.securityService = Objects.requireNonNull(securityService, "SecurityService cannot be null");
 
         JLabel panelLabel = new JLabel("System Control");
         panelLabel.setFont(StyleService.HEADING_FONT);

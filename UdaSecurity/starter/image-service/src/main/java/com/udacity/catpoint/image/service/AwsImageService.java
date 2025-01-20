@@ -21,57 +21,52 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
- * Service for detecting cats in images using AWS Rekognition.
+ * Image Recognition Service that can identify cats. Requires aws credentials to be entered in config.properties to work.
  */
 public class AwsImageService {
 
-    private final Logger log = LoggerFactory.getLogger(AwsImageService.class);
-    private final RekognitionClient rekognitionClient;
+    private static final Logger log = LoggerFactory.getLogger(AwsImageService.class);
 
-    // Default constructor for production use
-    public AwsImageService() {
-        this.rekognitionClient = initializeRekognitionClient();
+    // AWS recommendation is to maintain only a single instance of client objects
+    private static volatile RekognitionClient rekognitionClient;
+
+    // Static initialization for thread safety
+    static {
+        initializeRekognitionClient();
     }
 
-    // Constructor for testing or dependency injection
-    public AwsImageService(RekognitionClient rekognitionClient) {
-        this.rekognitionClient = rekognitionClient;
-    }
-
-    private RekognitionClient initializeRekognitionClient() {
+    private static void initializeRekognitionClient() {
         Properties props = new Properties();
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("config.properties")) {
-            if (is != null) {
-                props.load(is);
-            } else {
-                throw new IllegalArgumentException("config.properties file not found");
+        try (InputStream is = AwsImageService.class.getClassLoader().getResourceAsStream("config.properties")) {
+            if (is == null) {
+                throw new IOException("config.properties file not found in resources.");
             }
-        } catch (IOException e) {
-            log.error("Failed to load AWS configuration properties", e);
-            throw new IllegalStateException(e);
+            props.load(is);
+
+            String awsId = props.getProperty("aws.id");
+            String awsSecret = props.getProperty("aws.secret");
+            String awsRegion = props.getProperty("aws.region");
+
+            AwsCredentials awsCredentials = AwsBasicCredentials.create(awsId, awsSecret);
+            rekognitionClient = RekognitionClient.builder()
+                    .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                    .region(Region.of(awsRegion))
+                    .build();
+        } catch (IOException ioe) {
+            log.error("Unable to initialize AWS Rekognition client due to missing or invalid properties file", ioe);
         }
-
-        AwsCredentials awsCredentials = AwsBasicCredentials.create(
-                props.getProperty("aws.id"),
-                props.getProperty("aws.secret")
-        );
-
-        return RekognitionClient.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
-                .region(Region.of(props.getProperty("aws.region")))
-                .build();
     }
 
     /**
-     * Determines if a given image contains a cat above a confidence threshold.
+     * Returns true if the provided image contains a cat.
      *
-     * @param image               the image to analyze
-     * @param confidenceThreshold the minimum confidence level for detection
-     * @return true if a cat is detected, otherwise false
+     * @param image               Image to scan
+     * @param confidenceThreshold Minimum threshold to consider for cat detection.
+     * @return True if a cat is detected, false otherwise.
      */
     public boolean imageContainsCat(BufferedImage image, float confidenceThreshold) {
-        if (image == null) {
-            log.error("Provided image is null");
+        if (rekognitionClient == null) {
+            log.error("RekognitionClient is not initialized. Unable to process image.");
             return false;
         }
 
@@ -79,27 +74,26 @@ public class AwsImageService {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             ImageIO.write(image, "jpg", os);
             awsImage = Image.builder().bytes(SdkBytes.fromByteArray(os.toByteArray())).build();
-        } catch (IOException e) {
-            log.error("Error converting image to bytes", e);
+        } catch (IOException ioe) {
+            log.error("Error building image byte array", ioe);
             return false;
         }
 
-        DetectLabelsRequest request = DetectLabelsRequest.builder()
+        DetectLabelsRequest detectLabelsRequest = DetectLabelsRequest.builder()
                 .image(awsImage)
                 .minConfidence(confidenceThreshold)
                 .build();
 
-        DetectLabelsResponse response = rekognitionClient.detectLabels(request);
-        logDetectedLabels(response);
+        DetectLabelsResponse response = rekognitionClient.detectLabels(detectLabelsRequest);
+        logLabelsForFun(response);
 
         return response.labels().stream()
-                .anyMatch(label -> label.name().equalsIgnoreCase("cat") && label.confidence() >= confidenceThreshold);
+                .anyMatch(label -> label.name().toLowerCase().contains("cat"));
     }
 
-    private void logDetectedLabels(DetectLabelsResponse response) {
-        String labels = response.labels().stream()
-                .map(label -> String.format("%s (%.2f%%)", label.name(), label.confidence()))
-                .collect(Collectors.joining(", "));
-        log.info("Detected labels: " + labels);
+    private void logLabelsForFun(DetectLabelsResponse response) {
+        log.info(response.labels().stream()
+                .map(label -> String.format("%s(%.1f%%)", label.name(), label.confidence()))
+                .collect(Collectors.joining(", ")));
     }
 }

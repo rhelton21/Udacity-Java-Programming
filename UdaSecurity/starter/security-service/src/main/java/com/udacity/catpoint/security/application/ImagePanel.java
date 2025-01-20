@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 /** Panel containing the 'camera' output. Allows users to 'refresh' the camera
  * by uploading their own picture, and 'scan' the picture, sending it for image analysis
@@ -28,7 +29,7 @@ public class ImagePanel extends JPanel implements StatusListener {
     public ImagePanel(SecurityService securityService) {
         super();
         setLayout(new MigLayout());
-        this.securityService = securityService;
+		this.securityService = Objects.requireNonNull(securityService, "SecurityService cannot be null");
         securityService.addStatusListener(this);
 
         cameraHeader = new JLabel("Camera Feed");
@@ -53,9 +54,11 @@ public class ImagePanel extends JPanel implements StatusListener {
                 currentCameraImage = ImageIO.read(chooser.getSelectedFile());
                 Image tmp = new ImageIcon(currentCameraImage).getImage();
                 cameraLabel.setIcon(new ImageIcon(tmp.getScaledInstance(IMAGE_WIDTH, IMAGE_HEIGHT, Image.SCALE_SMOOTH)));
-            } catch (IOException |NullPointerException ioe) {
-                JOptionPane.showMessageDialog(null, "Invalid image selected.");
-            }
+			}catch (IOException ioe) {
+				JOptionPane.showMessageDialog(null, "Invalid image selected.");
+			}catch (Exception ex) { // Rename to 'ex' to avoid conflict with ActionEvent 'e'
+				JOptionPane.showMessageDialog(null, "Unexpected error occurred: " + ex.getMessage());
+			}
             repaint();
         });
 

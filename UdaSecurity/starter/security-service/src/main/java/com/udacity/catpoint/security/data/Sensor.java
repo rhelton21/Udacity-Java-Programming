@@ -1,8 +1,6 @@
 package com.udacity.catpoint.security.data;
 
-
 import com.google.common.collect.ComparisonChain;
-
 
 import java.util.Objects;
 import java.util.UUID;
@@ -21,6 +19,16 @@ public class Sensor implements Comparable<Sensor> {
         this.sensorType = sensorType;
         this.sensorId = UUID.randomUUID();
         this.active = Boolean.FALSE;
+    }
+
+    /**
+     * Ensure the sensorId is set after deserialization.
+     */
+    private Object readResolve() {
+        if (sensorId == null) {
+            sensorId = UUID.randomUUID();
+        }
+        return this;
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.udacity.catpoint.image.service.FakeImageService;
 import java.awt.image.BufferedImage;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Objects;
 
 /**
  * Service that receives information about changes to the security system. Responsible for
@@ -24,10 +25,10 @@ public class SecurityService {
     private SecurityRepository securityRepository;
     private Set<StatusListener> statusListeners = new HashSet<>();
 
-    public SecurityService(SecurityRepository securityRepository, FakeImageService imageService) {
-        this.securityRepository = securityRepository;
-        this.imageService = imageService;
-    }
+	public SecurityService(SecurityRepository securityRepository, FakeImageService imageService) {
+		this.securityRepository = Objects.requireNonNull(securityRepository, "SecurityRepository cannot be null");
+		this.imageService = Objects.requireNonNull(imageService, "ImageService cannot be null");
+	}
 
     /**
      * Sets the current arming status for the system. Changing the arming status
@@ -87,6 +88,7 @@ public class SecurityService {
         switch(securityRepository.getAlarmStatus()) {
             case NO_ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.ALARM);
+            default -> {}
         }
     }
 
@@ -97,6 +99,7 @@ public class SecurityService {
         switch(securityRepository.getAlarmStatus()) {
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
+			default -> {}
         }
     }
 
