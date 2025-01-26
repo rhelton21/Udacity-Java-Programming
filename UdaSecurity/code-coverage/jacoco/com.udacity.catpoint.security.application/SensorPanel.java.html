@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SensorPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Security Service</a> &gt; <a href="index.source.html" class="el_package">com.udacity.catpoint.security.application</a> &gt; <span class="el_source">SensorPanel.java</span></div><h1>SensorPanel.java</h1><pre class="source lang-java linenums">package com.udacity.catpoint.security.application;
+
+import com.udacity.catpoint.security.data.Sensor;
+import com.udacity.catpoint.security.data.SensorType;
+import com.udacity.catpoint.security.service.SecurityService;
+import com.udacity.catpoint.security.service.StyleService;
+import com.udacity.catpoint.security.data.AlarmStatus;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.*;
+import java.util.Objects;
+
+/**
+ * Panel that allows users to add sensors to their system. Sensors may be
+ * manually set to &quot;active&quot; and &quot;inactive&quot; to test the system.
+ */
+public class SensorPanel extends JPanel implements StatusListener {
+
+    private final SecurityService securityService;
+
+<span class="nc" id="L21">    private final JLabel panelLabel = new JLabel(&quot;Sensor Management&quot;);</span>
+<span class="nc" id="L22">    private final JLabel newSensorName = new JLabel(&quot;Name:&quot;);</span>
+<span class="nc" id="L23">    private final JLabel newSensorType = new JLabel(&quot;Sensor Type:&quot;);</span>
+<span class="nc" id="L24">    private final JTextField newSensorNameField = new JTextField();</span>
+<span class="nc" id="L25">    private final JComboBox&lt;SensorType&gt; newSensorTypeDropdown = new JComboBox&lt;&gt;(SensorType.values());</span>
+<span class="nc" id="L26">    private final JButton addNewSensorButton = new JButton(&quot;Add New Sensor&quot;);</span>
+
+    private final JPanel sensorListPanel;
+    private final JPanel newSensorPanel;
+
+    public SensorPanel(SecurityService securityService) {
+<span class="nc" id="L32">        super();</span>
+<span class="nc" id="L33">        setLayout(new MigLayout());</span>
+<span class="nc" id="L34">        this.securityService = Objects.requireNonNull(securityService, &quot;SecurityService cannot be null&quot;);</span>
+<span class="nc" id="L35">        securityService.addStatusListener(this);</span>
+
+<span class="nc" id="L37">        panelLabel.setFont(StyleService.HEADING_FONT);</span>
+
+<span class="nc" id="L39">        addNewSensorButton.addActionListener(e -&gt; {</span>
+<span class="nc" id="L40">            String sensorName = newSensorNameField.getText().trim();</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">            if (sensorName.isEmpty()) {</span>
+<span class="nc" id="L42">                JOptionPane.showMessageDialog(null, &quot;Sensor name cannot be empty.&quot;, &quot;Error&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L43">                return;</span>
+            }
+            // Check for duplicate sensor names, handling null names safely
+<span class="nc" id="L46">            if (securityService.getSensors().stream()</span>
+<span class="nc bnc" id="L47" title="All 6 branches missed.">                    .anyMatch(s -&gt; s.getName() != null &amp;&amp; s.getName().equalsIgnoreCase(sensorName))) {</span>
+<span class="nc" id="L48">                JOptionPane.showMessageDialog(null, &quot;Sensor with this name already exists.&quot;, &quot;Error&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L49">                return;</span>
+            }
+            try {
+<span class="nc" id="L52">                SensorType sensorType = (SensorType) newSensorTypeDropdown.getSelectedItem();</span>
+<span class="nc" id="L53">                addSensor(new Sensor(sensorName, sensorType));</span>
+<span class="nc" id="L54">            } catch (IllegalArgumentException ex) {</span>
+<span class="nc" id="L55">                JOptionPane.showMessageDialog(null, &quot;Invalid Sensor Type selected.&quot;, &quot;Error&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L56">            }</span>
+<span class="nc" id="L57">        });</span>
+
+<span class="nc" id="L59">        newSensorPanel = buildAddSensorPanel();</span>
+<span class="nc" id="L60">        sensorListPanel = new JPanel();</span>
+<span class="nc" id="L61">        sensorListPanel.setLayout(new MigLayout());</span>
+
+<span class="nc" id="L63">        updateSensorList(sensorListPanel);</span>
+
+<span class="nc" id="L65">        add(panelLabel, &quot;wrap&quot;);</span>
+<span class="nc" id="L66">        add(newSensorPanel, &quot;span&quot;);</span>
+<span class="nc" id="L67">        add(sensorListPanel, &quot;span&quot;);</span>
+<span class="nc" id="L68">    }</span>
+
+    /**
+     * Builds the panel with the form for adding a new sensor
+     */
+    private JPanel buildAddSensorPanel() {
+<span class="nc" id="L74">        JPanel p = new JPanel();</span>
+<span class="nc" id="L75">        p.setLayout(new MigLayout());</span>
+<span class="nc" id="L76">        p.add(newSensorName);</span>
+<span class="nc" id="L77">        p.add(newSensorNameField, &quot;width 50:100:200&quot;);</span>
+<span class="nc" id="L78">        p.add(newSensorType);</span>
+<span class="nc" id="L79">        p.add(newSensorTypeDropdown, &quot;wrap&quot;);</span>
+<span class="nc" id="L80">        p.add(addNewSensorButton, &quot;span 3&quot;);</span>
+<span class="nc" id="L81">        return p;</span>
+    }
+
+    /**
+     * Requests the current list of sensors and updates the provided panel to display them. Sensors
+     * will display in the order that they are created.
+     * @param p The Panel to populate with the current list of sensors
+     */
+	private void updateSensorList(JPanel p) {
+<span class="nc" id="L90">		p.removeAll();</span>
+<span class="nc" id="L91">		securityService.getSensors().stream().sorted().forEach(s -&gt; {</span>
+<span class="nc" id="L92">			JLabel sensorLabel = new JLabel(String.format(&quot;%s (%s): %s&quot;,</span>
+<span class="nc" id="L93">                s.getName(),</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                s.getSensorType() != null ? s.getSensorType().toString() : &quot;Unknown&quot;,</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                Boolean.TRUE.equals(s.getActive()) ? &quot;Active&quot; : &quot;Inactive&quot;));</span>
+
+<span class="nc bnc" id="L97" title="All 2 branches missed.">			JButton sensorToggleButton = new JButton(Boolean.TRUE.equals(s.getActive()) ? &quot;Deactivate&quot; : &quot;Activate&quot;);</span>
+<span class="nc" id="L98">			JButton sensorRemoveButton = new JButton(&quot;Remove Sensor&quot;);</span>
+
+<span class="nc bnc" id="L100" title="All 2 branches missed.">			sensorToggleButton.addActionListener(e -&gt; setSensorActivity(s, !Boolean.TRUE.equals(s.getActive())));</span>
+<span class="nc" id="L101">			sensorRemoveButton.addActionListener(e -&gt; removeSensor(s));</span>
+
+<span class="nc" id="L103">			p.add(sensorLabel, &quot;width 300:300:300&quot;);</span>
+<span class="nc" id="L104">			p.add(sensorToggleButton, &quot;width 100:100:100&quot;);</span>
+<span class="nc" id="L105">			p.add(sensorRemoveButton, &quot;wrap&quot;);</span>
+<span class="nc" id="L106">		});</span>
+
+<span class="nc" id="L108">		repaint();</span>
+<span class="nc" id="L109">		revalidate();</span>
+<span class="nc" id="L110">	}</span>
+
+    /**
+     * Asks the securityService to change a sensor activation status and then rebuilds the current sensor list
+     * @param sensor The sensor to update
+     * @param isActive The sensor's activation status
+     */
+    private void setSensorActivity(Sensor sensor, Boolean isActive) {
+<span class="nc" id="L118">        securityService.changeSensorActivationStatus(sensor, isActive);</span>
+<span class="nc" id="L119">        updateSensorList(sensorListPanel);</span>
+<span class="nc" id="L120">    }</span>
+
+    /**
+     * Adds a sensor to the securityService and then rebuilds the sensor list
+     * @param sensor The sensor to add
+     */
+    private void addSensor(Sensor sensor) {
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (securityService.getSensors().size() &lt; 4) {</span>
+<span class="nc" id="L128">            securityService.addSensor(sensor);</span>
+<span class="nc" id="L129">            updateSensorList(sensorListPanel);</span>
+        } else {
+<span class="nc" id="L131">            JOptionPane.showMessageDialog(null, &quot;To add more than 4 sensors, please subscribe to our Premium Membership!&quot;);</span>
+        }
+<span class="nc" id="L133">    }</span>
+
+    /**
+     * Remove a sensor from the securityService and then rebuild the sensor list
+     * @param sensor The sensor to remove
+     */
+    private void removeSensor(Sensor sensor) {
+<span class="nc" id="L140">        securityService.removeSensor(sensor);</span>
+<span class="nc" id="L141">        updateSensorList(sensorListPanel);</span>
+<span class="nc" id="L142">    }</span>
+
+    @Override
+    public void notify(AlarmStatus status) {
+        // Handle alarm status notifications if needed
+<span class="nc" id="L147">    }</span>
+
+    @Override
+    public void catDetected(boolean catDetected) {
+        // Handle cat detection updates if needed
+<span class="nc" id="L152">    }</span>
+
+    @Override
+    public void sensorStatusChanged() {
+<span class="nc" id="L156">        updateSensorList(sensorListPanel);</span>
+<span class="nc" id="L157">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

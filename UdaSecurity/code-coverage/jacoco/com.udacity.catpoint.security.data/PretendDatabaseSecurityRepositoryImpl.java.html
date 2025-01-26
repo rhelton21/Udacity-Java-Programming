@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PretendDatabaseSecurityRepositoryImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Security Service</a> &gt; <a href="index.source.html" class="el_package">com.udacity.catpoint.security.data</a> &gt; <span class="el_source">PretendDatabaseSecurityRepositoryImpl.java</span></div><h1>PretendDatabaseSecurityRepositoryImpl.java</h1><pre class="source lang-java linenums">package com.udacity.catpoint.security.data;
+
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+
+import java.lang.reflect.Type;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.prefs.Preferences;
+
+/**
+ * Fake repository implementation for demo purposes. Stores state information in local
+ * memory and writes it to user preferences between app loads. This implementation is
+ * intentionally less practical to use in production but is sufficient for testing and demo purposes.
+ */
+public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository {
+
+<span class="nc" id="L18">    private final Set&lt;Sensor&gt; sensors = new HashSet&lt;&gt;();</span>
+    private AlarmStatus alarmStatus;
+    private ArmingStatus armingStatus;
+    private boolean catDetected;
+
+    // Preference keys for storing state
+    private static final String SENSORS = &quot;SENSORS&quot;;
+    private static final String ALARM_STATUS = &quot;ALARM_STATUS&quot;;
+    private static final String ARMING_STATUS = &quot;ARMING_STATUS&quot;;
+
+    // Preferences and Gson for state serialization
+<span class="nc" id="L29">    private static final Preferences prefs = Preferences.userNodeForPackage(PretendDatabaseSecurityRepositoryImpl.class);</span>
+<span class="nc" id="L30">    private static final Gson gson = new Gson();</span>
+
+    /**
+     * Constructor initializes the repository by loading saved preferences.
+     */
+<span class="nc" id="L35">    public PretendDatabaseSecurityRepositoryImpl() {</span>
+        // Load system state from preferences, defaulting if none exists
+<span class="nc" id="L37">        alarmStatus = AlarmStatus.valueOf(prefs.get(ALARM_STATUS, AlarmStatus.NO_ALARM.toString()));</span>
+<span class="nc" id="L38">        armingStatus = ArmingStatus.valueOf(prefs.get(ARMING_STATUS, ArmingStatus.DISARMED.toString()));</span>
+
+        // Deserialize saved sensors if present
+<span class="nc" id="L41">        String sensorString = prefs.get(SENSORS, null);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (sensorString != null) {</span>
+<span class="nc" id="L43">            Type type = new TypeToken&lt;Set&lt;Sensor&gt;&gt;() {}.getType();</span>
+<span class="nc" id="L44">            sensors.addAll(gson.fromJson(sensorString, type));</span>
+        }
+<span class="nc" id="L46">    }</span>
+
+    @Override
+    public void addSensor(Sensor sensor) {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (sensor != null) {</span>
+<span class="nc" id="L51">            sensors.add(sensor);</span>
+<span class="nc" id="L52">            saveSensors();</span>
+        }
+<span class="nc" id="L54">    }</span>
+
+	@Override
+	public void removeSensor(Sensor sensor) {
+<span class="nc" id="L58">		sensors.remove(sensor);</span>
+<span class="nc" id="L59">		saveSensors(); </span>
+<span class="nc" id="L60">	}</span>
+
+    @Override
+    public void updateSensor(Sensor sensor) {
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (sensor != null) {</span>
+<span class="nc" id="L65">            sensors.remove(sensor); </span>
+<span class="nc" id="L66">            sensors.add(sensor);   </span>
+<span class="nc" id="L67">            saveSensors();</span>
+        }
+<span class="nc" id="L69">    }</span>
+
+    @Override
+    public void setAlarmStatus(AlarmStatus alarmStatus) {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (alarmStatus != null) {</span>
+<span class="nc" id="L74">            this.alarmStatus = alarmStatus;</span>
+<span class="nc" id="L75">            prefs.put(ALARM_STATUS, this.alarmStatus.toString());</span>
+        }
+<span class="nc" id="L77">    }</span>
+
+    @Override
+    public void setArmingStatus(ArmingStatus armingStatus) {
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (armingStatus != null) {</span>
+<span class="nc" id="L82">            this.armingStatus = armingStatus;</span>
+<span class="nc" id="L83">            prefs.put(ARMING_STATUS, this.armingStatus.toString());</span>
+        }
+<span class="nc" id="L85">    }</span>
+
+    @Override
+    public Set&lt;Sensor&gt; getSensors() {
+<span class="nc" id="L89">        return new HashSet&lt;&gt;(sensors); </span>
+    }
+
+    @Override
+    public AlarmStatus getAlarmStatus() {
+<span class="nc" id="L94">        return alarmStatus;</span>
+    }
+
+    @Override
+    public ArmingStatus getArmingStatus() {
+<span class="nc" id="L99">        return armingStatus;</span>
+    }
+
+    @Override
+    public boolean isCatDetected() {
+<span class="nc" id="L104">        return catDetected;</span>
+    }
+
+    /**
+     * Updates the cat detection status.
+     *
+     * @param detected True if a cat is detected, false otherwise.
+     */
+    public void setCatDetected(boolean detected) {
+<span class="nc" id="L113">        this.catDetected = detected;</span>
+<span class="nc" id="L114">    }</span>
+
+    /**
+     * Saves the current sensor state to preferences by serializing to JSON.
+     */
+    private void saveSensors() {
+<span class="nc" id="L120">        prefs.put(SENSORS, gson.toJson(sensors));</span>
+<span class="nc" id="L121">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

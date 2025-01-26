@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FakeSecurityRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Security Service</a> &gt; <a href="index.source.html" class="el_package">com.udacity.catpoint.security.data</a> &gt; <span class="el_source">FakeSecurityRepository.java</span></div><h1>FakeSecurityRepository.java</h1><pre class="source lang-java linenums">package com.udacity.catpoint.security.data;
+
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Fake implementation of SecurityRepository for integration testing.
+ * Stores data in memory and simulates behavior of PretendDatabaseSecurityRepository.
+ */
+<span class="fc" id="L10">public class FakeSecurityRepository implements SecurityRepository {</span>
+
+<span class="fc" id="L12">    private final Set&lt;Sensor&gt; sensors = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L13">    private AlarmStatus alarmStatus = AlarmStatus.NO_ALARM;</span>
+<span class="fc" id="L14">    private ArmingStatus armingStatus = ArmingStatus.DISARMED;</span>
+<span class="fc" id="L15">    private boolean catDetected = false;</span>
+
+    @Override
+    public void addSensor(Sensor sensor) {
+<span class="fc" id="L19">        sensors.add(sensor);</span>
+<span class="fc" id="L20">    }</span>
+
+    @Override
+    public void removeSensor(Sensor sensor) {
+<span class="nc" id="L24">        sensors.remove(sensor);</span>
+<span class="nc" id="L25">    }</span>
+
+    @Override
+    public void updateSensor(Sensor sensor) {
+<span class="fc" id="L29">        sensors.remove(sensor);</span>
+<span class="fc" id="L30">        sensors.add(sensor);</span>
+<span class="fc" id="L31">    }</span>
+
+    @Override
+    public void setAlarmStatus(AlarmStatus alarmStatus) {
+<span class="fc" id="L35">        this.alarmStatus = alarmStatus;</span>
+<span class="fc" id="L36">    }</span>
+
+    @Override
+    public void setArmingStatus(ArmingStatus armingStatus) {
+<span class="fc" id="L40">        this.armingStatus = armingStatus;</span>
+<span class="fc" id="L41">    }</span>
+
+    @Override
+    public Set&lt;Sensor&gt; getSensors() {
+<span class="fc" id="L45">        return new HashSet&lt;&gt;(sensors);</span>
+    }
+
+    @Override
+    public AlarmStatus getAlarmStatus() {
+<span class="fc" id="L50">        return alarmStatus;</span>
+    }
+
+    @Override
+    public ArmingStatus getArmingStatus() {
+<span class="fc" id="L55">        return armingStatus;</span>
+    }
+
+    @Override
+    public boolean isCatDetected() {
+<span class="nc" id="L60">        return catDetected;</span>
+    }
+
+    @Override
+    public void setCatDetected(boolean detected) {
+<span class="nc" id="L65">        this.catDetected = detected;</span>
+<span class="nc" id="L66">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

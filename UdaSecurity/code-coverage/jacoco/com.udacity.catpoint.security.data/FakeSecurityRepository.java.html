@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FakeSecurityRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Security Service</a> &gt; <a href="index.source.html" class="el_package">com.udacity.catpoint.security.data</a> &gt; <span class="el_source">FakeSecurityRepository.java</span></div><h1>FakeSecurityRepository.java</h1><pre class="source lang-java linenums">package com.udacity.catpoint.security.data;
+
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Fake implementation of SecurityRepository for integration testing.
+ * Stores data in memory and simulates behavior of PretendDatabaseSecurityRepository.
+ */
+<span class="fc" id="L10">public class FakeSecurityRepository implements SecurityRepository {</span>
+
+<span class="fc" id="L12">    private final Set&lt;Sensor&gt; sensors = new HashSet&lt;&gt;(); // Stores all registered sensors</span>
+<span class="fc" id="L13">    private AlarmStatus alarmStatus = AlarmStatus.NO_ALARM; // Default alarm status</span>
+<span class="fc" id="L14">    private ArmingStatus armingStatus = ArmingStatus.DISARMED; // Default arming status</span>
+<span class="fc" id="L15">    private boolean catDetected = false; // Default cat detection state</span>
+
+    /**
+     * Adds a sensor to the repository.
+     *
+     * @param sensor The sensor to add.
+     */
+    @Override
+    public void addSensor(Sensor sensor) {
+<span class="fc" id="L24">        sensors.add(sensor);</span>
+<span class="fc" id="L25">    }</span>
+
+    /**
+     * Removes a sensor from the repository.
+     *
+     * @param sensor The sensor to remove.
+     */
+    @Override
+    public void removeSensor(Sensor sensor) {
+<span class="nc" id="L34">        sensors.remove(sensor);</span>
+<span class="nc" id="L35">    }</span>
+
+    /**
+     * Updates a sensor in the repository. If the sensor already exists, it is replaced.
+     *
+     * @param sensor The sensor to update.
+     */
+    @Override
+    public void updateSensor(Sensor sensor) {
+<span class="fc" id="L44">        sensors.remove(sensor); // Remove the old instance of the sensor</span>
+<span class="fc" id="L45">        sensors.add(sensor);   // Add the updated instance</span>
+<span class="fc" id="L46">    }</span>
+
+    /**
+     * Sets the alarm status.
+     *
+     * @param alarmStatus The new alarm status.
+     */
+    @Override
+    public void setAlarmStatus(AlarmStatus alarmStatus) {
+<span class="fc" id="L55">        this.alarmStatus = alarmStatus;</span>
+<span class="fc" id="L56">    }</span>
+
+    /**
+     * Sets the arming status.
+     *
+     * @param armingStatus The new arming status.
+     */
+    @Override
+    public void setArmingStatus(ArmingStatus armingStatus) {
+<span class="fc" id="L65">        this.armingStatus = armingStatus;</span>
+<span class="fc" id="L66">    }</span>
+
+    /**
+     * Retrieves all registered sensors.
+     *
+     * @return A copy of the set of sensors.
+     */
+    @Override
+    public Set&lt;Sensor&gt; getSensors() {
+<span class="fc" id="L75">        return new HashSet&lt;&gt;(sensors); // Return a new set to ensure immutability</span>
+    }
+
+    /**
+     * Retrieves the current alarm status.
+     *
+     * @return The current alarm status.
+     */
+    @Override
+    public AlarmStatus getAlarmStatus() {
+<span class="fc" id="L85">        return alarmStatus;</span>
+    }
+
+    /**
+     * Retrieves the current arming status.
+     *
+     * @return The current arming status.
+     */
+    @Override
+    public ArmingStatus getArmingStatus() {
+<span class="fc" id="L95">        return armingStatus;</span>
+    }
+
+    /**
+     * Checks if a cat has been detected.
+     *
+     * @return True if a cat is detected, false otherwise.
+     */
+    @Override
+    public boolean isCatDetected() {
+<span class="nc" id="L105">        return catDetected;</span>
+    }
+
+    /**
+     * Sets the cat detection state.
+     *
+     * @param detected True if a cat is detected, false otherwise.
+     */
+    @Override
+    public void setCatDetected(boolean detected) {
+<span class="fc" id="L115">        this.catDetected = detected;</span>
+<span class="fc" id="L116">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
